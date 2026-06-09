@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../services/db');
 const { calculateEmissions } = require('../../utils/emissionCalculator'); // Will move utils to src/services later if needed, but for now it is in backend/utils
 
 const calculateFootprint = async (req, res) => {

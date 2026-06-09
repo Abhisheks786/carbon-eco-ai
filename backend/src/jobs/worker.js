@@ -7,6 +7,9 @@ const JOB_QUEUE_NAME = 'background-jobs';
 let jobQueue;
 if (redisClient) {
   jobQueue = new Queue(JOB_QUEUE_NAME, { connection: redisClient });
+  jobQueue.on('error', (err) => {
+    // Silence connection errors since we fall back gracefully
+  });
 }
 
 // Setup Worker
@@ -20,6 +23,10 @@ if (redisClient) {
       // Logic would go here to pre-calculate and cache leaderboard
     }
   }, { connection: redisClient });
+
+  worker.on('error', (err) => {
+    // Silence connection errors since we fall back gracefully
+  });
 
   worker.on('completed', (job) => {
     console.log(`Job ${job.id} completed successfully`);
