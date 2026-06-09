@@ -1,0 +1,59 @@
+# .env.example (Backend)
+# Copy this file to .env and fill in your values
+
+# Server Configuration
+PORT=5000
+NODE_ENV=development
+
+# Database Configuration
+DATABASE_URL=postgresql://username:password@localhost:5432/ecotrack_db
+
+# Firebase Admin Configuration
+FIREBASE_SERVICE_ACCOUNT={"type":"service_account","project_id":"your-project-id",...}
+
+# JWT Configuration
+JWT_SECRET=your_super_secret_jwt_key_here_change_in_production
+JWT_EXPIRE=7d
+
+# Email Configuration (for notifications)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=your-email@gmail.com
+SMTP_PASS=your-app-specific-password
+SMTP_FROM=noreply@ecotrackapp.com
+
+# OpenAI Configuration
+OPENAI_API_KEY=sk-your-openai-key-here
+
+# Redis Configuration (for caching/sessions)
+REDIS_URL=redis://localhost:6379
+REDIS_PASSWORD=your_redis_password
+
+# Cloudinary Configuration (for file uploads)
+CLOUDINARY_CLOUD_NAME=your-cloud-name
+CLOUDINARY_API_KEY=your-api-key
+CLOUDINARY_API_SECRET=your-api-secret
+
+# Stripe Configuration (for carbon offset payments - optional)
+STRIPE_SECRET_KEY=sk_test_your_stripe_key
+STRIPE_PUBLISHABLE_KEY=pk_test_your_stripe_key
+
+# CORS Configuration
+CORS_ORIGIN=http://localhost:3000,https://ecotrackapp.com
+
+# Python AI Service Configuration
+AI_SERVICE_URL=http://localhost:8000
+
+# Logging
+LOG_LEVEL=debug
+
+# Rate Limiting
+RATE_LIMIT_WINDOW_MS=900000
+RATE_LIMIT_MAX_REQUESTS=100
+
+# Email Service (SendGrid or similar)
+SENDGRID_API_KEY=SG_your_sendgrid_key
+
+# Environment
+APP_NAME=EcoTrack AI
+APP_URL=http://localhost:5000

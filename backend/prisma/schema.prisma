@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// Users
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  name            String
+  avatar          String?
+  firebaseId      String    @unique
+  bio             String?
+  city            String?
+  country         String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  footprints      CarbonFootprint[]
+  achievements    Achievement[]
+  communityScore  CommunityScore?
+  settings        UserSettings?
+  recommendations Recommendation[]
+  offsets         CarbonOffset[]
+  challenges      UserChallenge[]
+
+  @@index([email])
+  @@index([city])
+}
+
+// Carbon Footprint Tracking
+model CarbonFootprint {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  date            DateTime  @default(now())
+  
+  // Transportation (kg CO2)
+  carUsage        Float     @default(0)    // km/day
+  bikeUsage       Float     @default(0)    // km/day
+  publicTransport Float     @default(0)    // km/day
+  trainUsage      Float     @default(0)    // km/day
+  flights         Float     @default(0)    // hours/month
+  
+  // Home Energy (kg CO2)
+  electricity     Float     @default(0)    // kWh/month
+  gas             Float     @default(0)    // units/month
+  renewableUsage  Float     @default(0)    // percentage
+  
+  // Food Habits
+  dietType        String    @default("mixed") // vegetarian, vegan, mixed, high-meat
+  
+  // Shopping
+  clothingPurchases    Float   @default(0) // items/month
+  electronicsPurchases Float   @default(0) // items/month
+  generalGoods         Float   @default(0) // spent/month
+  
+  // Waste
+  recyclingRate        Float   @default(0) // percentage
+  weeklyWaste          Float   @default(0) // kg/week
+  
+  // Calculated totals
+  totalDaily           Float   @default(0) // kg CO2
+  totalMonthly         Float   @default(0) // kg CO2
+  totalYearly          Float   @default(0) // kg CO2
+  
+  // Breakdown by category
+  transportEmission    Float   @default(0)
+  energyEmission       Float   @default(0)
+  foodEmission         Float   @default(0)
+  shoppingEmission     Float   @default(0)
+  wasteEmission        Float   @default(0)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([date])
+}
+
+// User Settings
+model UserSettings {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  monthlyGoal     Float     @default(5000)  // kg CO2
+  reductionTarget Float     @default(0.1)   // 10% reduction
+  theme           String    @default("dark")
+  currency        String    @default("USD")
+  notifications   Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+// Gamification - Achievements
+model Achievement {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name            String
+  description     String
+  badge           String    // emoji or icon
+  xpReward        Int       @default(100)
+  category        String    // milestone, streak, reduction, etc
+  
+  unlockedAt      DateTime  @default(now())
+  
+  @@index([userId])
+}
+
+// Community - Leaderboard
+model CommunityScore {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  xpPoints        Int       @default(0)
+  level           Int       @default(1)      // Bronze, Silver, Gold, Platinum
+  monthlyRank     Int?
+  cityRank        Int?
+  globalRank      Int?
+  
+  reductionPercent Float    @default(0)
+  streakDays      Int       @default(0)
+  friendsCount    Int       @default(0)
+  
+  updatedAt       DateTime  @updatedAt
+
+  @@index([xpPoints])
+  @@index([level])
+}
+
+// Recommendations from AI Coach
+model Recommendation {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type            String    // strategy, tip, goal
+  title           String
+  description     String
+  estimatedSavings Float   // kg CO2 per year
+  difficulty      String    // easy, medium, hard
+  category        String    // transportation, energy, food, etc
+  
+  implemented     Boolean   @default(false)
+  implementedAt   DateTime?
+  
+  createdAt       DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// Carbon Offsets
+model CarbonOffset {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  project         String    // tree planting, renewable energy, etc
+  amountKgCO2     Float
+  costUSD         Float
+  provider        String    // third-party verification
+  certificateUrl  String?
+  
+  createdAt       DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// Gamification - Challenges
+model Challenge {
+  id              String    @id @default(cuid())
+  name            String
+  description     String
+  category        String    // no-car, energy-saver, plastic-free, etc
+  duration        Int       // days
+  targetReduction Float     // percentage
+  xpReward        Int
+  
+  createdAt       DateTime  @default(now())
+}
+
+// User Challenge Participation
+model UserChallenge {
+  id              String    @id @default(cuid())
+  userId          String
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challengeId     String
+  
+  startDate       DateTime  @default(now())
+  endDate         DateTime
+  completed       Boolean   @default(false)
+  completedAt     DateTime?
+  progress        Float     @default(0) // percentage
+  
+  @@unique([userId, challengeId])
+  @@index([userId])
+}
+
+// AI Predictions (Carbon Twin)
+model CarbonPrediction {
+  id              String    @id @default(cuid())
+  userId          String
+  
+  month           Int
+  year            Int
+  predictedEmission Float
+  confidence      Float     // 0-1
+  
+  createdAt       DateTime  @default(now())
+
+  @@unique([userId, month, year])
+  @@index([userId])
+}
