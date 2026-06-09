@@ -7,3 +7,5 @@ backend/dev.db-journal
 dist/
 build/
 .DS_Store
+*firebase-adminsdk*.json
+

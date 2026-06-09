@@ -11,16 +11,38 @@ app.use(cors());
 app.use(express.json());
 
 // Firebase Admin Setup
-if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+const fs = require('fs');
+const path = require('path');
+let firebaseInitialized = false;
+const serviceAccountPath = path.join(__dirname, '../carbon-eco-firebase-adminsdk-fbsvc-d5be3b1802.json');
+
+if (fs.existsSync(serviceAccountPath)) {
+  try {
+    const serviceAccount = require(serviceAccountPath);
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+    });
+    firebaseInitialized = true;
+    console.log("Firebase Admin successfully initialized from JSON file.");
+  } catch (e) {
+    console.warn("Failed to initialize Firebase from JSON file, trying environment variable...", e.message);
+  }
+}
+
+if (!firebaseInitialized && process.env.FIREBASE_SERVICE_ACCOUNT) {
   try {
     admin.initializeApp({
       credential: admin.credential.cert(JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)),
     });
+    firebaseInitialized = true;
+    console.log("Firebase Admin successfully initialized from env variable.");
   } catch (e) {
-    console.warn("Firebase config invalid, running in mock mode");
+    console.warn("Firebase config env variable invalid, running in mock mode");
   }
-} else {
-  console.warn("No FIREBASE_SERVICE_ACCOUNT provided, running in mock mode");
+}
+
+if (!firebaseInitialized) {
+  console.warn("No firebase credentials found, running in mock mode");
 }
 
 // Routes
