@@ -3,15 +3,25 @@ const { z } = require('zod');
 const signupSchema = z.object({
   body: z.object({
     email: z.string().email('Invalid email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
+    password: z.string().min(6).optional(),
     name: z.string().min(2, 'Name must be at least 2 characters'),
+    firebaseId: z.string().optional(),
+    idToken: z.string().optional(),
   }),
 });
 
 const loginSchema = z.object({
   body: z.object({
     email: z.string().email('Invalid email address'),
-    password: z.string().min(1, 'Password is required'),
+    password: z.string().min(1, 'Password is required').optional(),
+    idToken: z.string().optional(),
+  }),
+});
+
+const syncSchema = z.object({
+  body: z.object({
+    idToken: z.string().min(1, 'ID token is required'),
+    name: z.string().min(2).optional(),
   }),
 });
 
@@ -46,6 +56,7 @@ const footprintCalculateSchema = z.object({
 module.exports = {
   signupSchema,
   loginSchema,
+  syncSchema,
   profileUpdateSchema,
   footprintCalculateSchema,
 };

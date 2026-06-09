@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps } from 'firebase/app';
 import { getAuth } from 'firebase/auth';
 
 const firebaseConfig = {
@@ -10,5 +10,21 @@ const firebaseConfig = {
   appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
 };
 
-export const app = initializeApp(firebaseConfig);
+const PLACEHOLDER_PATTERNS = [
+  'your_firebase_api_key',
+  'your-project',
+  'your-firebase-project-id',
+  'your-sender-id',
+  'your-app-id',
+];
+
+export function isFirebaseConfigured(): boolean {
+  const { apiKey, authDomain, projectId } = firebaseConfig;
+  if (!apiKey || !authDomain || !projectId) return false;
+  const values = [apiKey, authDomain, projectId].join(' ').toLowerCase();
+  return !PLACEHOLDER_PATTERNS.some((p) => values.includes(p));
+}
+
+export const app =
+  getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
 export const auth = getAuth(app);

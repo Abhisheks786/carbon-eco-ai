@@ -56,6 +56,14 @@ app.use('/api/footprint', footprintRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/community', communityRoutes);
 
+app.get('/api/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
+app.use((req, res) => {
+  res.status(404).json({ error: `Route not found: ${req.method} ${req.path}` });
+});
+
 // Error Handling Middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);

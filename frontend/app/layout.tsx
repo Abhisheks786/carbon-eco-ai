@@ -1,38 +1,23 @@
-'use client';
-
 import { Inter } from 'next/font/google';
-import { useEffect, useState } from 'react';
-import { AuthProvider } from '@/lib/auth-context';
-import Navigation from '@/components/navigation';
+import { AppProviders } from '@/components/app-providers';
 import '@/styles/globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'], variable: '--font-inter' });
+
+export const metadata = {
+  title: 'EcoTrack AI — Carbon Footprint Platform',
+  description: 'Track, reduce, and offset your carbon footprint with AI-powered insights.',
+};
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   return (
     <html lang="en" className="scroll-smooth">
-      <head>
-        <meta name="theme-color" content="#10b981" />
-      </head>
-      <body className={`${inter.className} bg-slate-900 text-white`}>
-        <AuthProvider>
-          <Navigation />
-          <main className="min-h-screen">
-            {children}
-          </main>
-        </AuthProvider>
+      <body className={`${inter.className} bg-slate-950 text-white antialiased`}>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

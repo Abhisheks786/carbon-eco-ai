@@ -7,6 +7,7 @@ const { authenticateToken } = require('../middleware/authMiddleware');
 
 router.post('/signup', validate(schemas.signupSchema), authController.signup);
 router.post('/login', validate(schemas.loginSchema), authController.login);
+router.post('/sync', validate(schemas.syncSchema), authController.sync);
 router.get('/profile', authenticateToken, authController.getProfile);
 router.put('/profile', authenticateToken, validate(schemas.profileUpdateSchema), authController.updateProfile);
 

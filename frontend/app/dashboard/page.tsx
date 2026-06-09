@@ -7,6 +7,7 @@ import DashboardCard from '@/components/dashboard/dashboard-card';
 import EmissionChart from '@/components/dashboard/emission-chart';
 import RecommendationCard from '@/components/dashboard/recommendation-card';
 import { formatCO2, getLevelName } from '@/lib/utils';
+import { useDisplayName } from '@/lib/auth-context';
 
 interface DashboardData {
   carbonScore: number;
@@ -25,13 +26,14 @@ interface DashboardData {
 }
 
 export default function Dashboard() {
-  const { user, loading } = useAuth();
+  const { loading, isAuthenticated } = useAuth();
+  const displayName = useDisplayName();
   const [data, setData] = useState<DashboardData | null>(null);
   const [recommendations, setRecommendations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
+    if (!isAuthenticated) return;
 
     const fetchData = async () => {
       try {
@@ -50,7 +52,7 @@ export default function Dashboard() {
     };
 
     fetchData();
-  }, [user]);
+  }, [isAuthenticated]);
 
   if (loading || isLoading) {
     return (
@@ -81,7 +83,7 @@ export default function Dashboard() {
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-4xl font-bold text-white mb-2">
-          Welcome back, {user?.displayName || 'User'}!
+          Welcome back, {displayName}!
         </h1>
         <p className="text-slate-400">
           Your carbon footprint overview for this month

@@ -32,7 +32,7 @@ export default function EmissionChart({ data }: EmissionChartProps) {
               <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
             ))}
           </Pie>
-          <Tooltip formatter={(value) => `${value.toFixed(2)} kg CO₂`} />
+          <Tooltip formatter={(value) => `${Number(value).toFixed(2)} kg CO₂`} />
           <Legend />
         </PieChart>
       </ResponsiveContainer>

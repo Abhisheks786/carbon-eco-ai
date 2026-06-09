@@ -3,19 +3,27 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
-import { apiClient } from '@/lib/api';
+import { motion } from 'framer-motion';
+import ParticleBackground from '@/components/auth/particle-background';
+import { useToast } from '@/components/ui/toast';
+import { useAuth } from '@/lib/auth-context';
+import {
+  registerWithEmail,
+  registerWithGoogle,
+  getAuthErrorMessage,
+} from '@/lib/auth-service';
+import { isFirebaseConfigured } from '@/lib/firebase';
 
 export default function SignUp() {
   const router = useRouter();
+  const { showToast } = useToast();
+  const { setDevSession } = useAuth();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
-  const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -25,159 +33,125 @@ export default function SignUp() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
     setIsLoading(true);
 
     try {
-      // Validate
       if (formData.password !== formData.confirmPassword) {
         throw new Error('Passwords do not match');
       }
-
       if (formData.password.length < 6) {
         throw new Error('Password must be at least 6 characters');
       }
 
-      // Create Firebase user
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
+      const firebaseUser = await registerWithEmail(
         formData.email,
-        formData.password
+        formData.password,
+        formData.name
       );
 
-      // Create database user
-      const token = await userCredential.user.getIdToken();
-      await apiClient.signup(formData.email, formData.password, formData.name);
+      if (!firebaseUser && !isFirebaseConfigured()) {
+        setDevSession({ email: formData.email, name: formData.name });
+      }
 
-      // Redirect to onboarding
-      router.push('/onboarding');
-    } catch (err: any) {
-      setError(err.message || 'Failed to create account');
+      showToast('Account created successfully!', 'success');
+      router.push('/dashboard');
+    } catch (err) {
+      showToast(getAuthErrorMessage(err), 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleGoogleSignUp = async () => {
-    setError('');
     setIsLoading(true);
-
     try {
-      const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-
-      // Create database user
-      await apiClient.signup(
-        result.user.email!,
-        '',
-        result.user.displayName || 'User'
-      );
-
-      router.push('/onboarding');
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign up with Google');
+      await registerWithGoogle();
+      showToast('Welcome to EcoTrack AI!', 'success');
+      router.push('/dashboard');
+    } catch (err) {
+      showToast(getAuthErrorMessage(err), 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-      <div className="max-w-md w-full">
-        {/* Logo/Header */}
+    <div className="relative min-h-screen flex items-center justify-center p-4 sm:p-6">
+      <ParticleBackground />
+
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+        className="relative w-full max-w-[420px]"
+      >
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">🌍 EcoTrack AI</h1>
-          <p className="text-slate-400">Join the sustainable revolution</p>
+          <h1 className="text-3xl font-semibold tracking-tight text-white mb-1.5">
+            Create your account
+          </h1>
+          <p className="text-slate-400 text-sm">
+            Join the sustainable revolution
+          </p>
         </div>
 
-        {/* Form Card */}
-        <div className="bg-gradient-to-br from-slate-800/50 to-slate-700/30 backdrop-blur-md border border-slate-700/50 rounded-2xl p-8">
-          {error && (
-            <div className="mb-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
-              <p className="text-red-400 text-sm">{error}</p>
-            </div>
-          )}
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.03] backdrop-blur-xl p-6 sm:p-8 shadow-2xl shadow-black/20">
+          <form onSubmit={handleSignUp} className="space-y-4">
+            <InputField label="Full Name" name="name" type="text" placeholder="Jane Doe" value={formData.name} onChange={handleChange} required />
+            <InputField label="Email" name="email" type="email" placeholder="you@example.com" value={formData.email} onChange={handleChange} required />
+            <InputField label="Password" name="password" type="password" placeholder="At least 6 characters" value={formData.password} onChange={handleChange} required />
+            <InputField label="Confirm Password" name="confirmPassword" type="password" placeholder="Repeat password" value={formData.confirmPassword} onChange={handleChange} required />
 
-          <form onSubmit={handleSignUp} className="space-y-4 mb-6">
-            <InputField
-              label="Full Name"
-              name="name"
-              type="text"
-              placeholder="John Doe"
-              value={formData.name}
-              onChange={handleChange}
-              required
-            />
-
-            <InputField
-              label="Email"
-              name="email"
-              type="email"
-              placeholder="you@example.com"
-              value={formData.email}
-              onChange={handleChange}
-              required
-            />
-
-            <InputField
-              label="Password"
-              name="password"
-              type="password"
-              placeholder="At least 6 characters"
-              value={formData.password}
-              onChange={handleChange}
-              required
-            />
-
-            <InputField
-              label="Confirm Password"
-              name="confirmPassword"
-              type="password"
-              placeholder="Confirm your password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-            />
-
-            <button
+            <motion.button
               type="submit"
               disabled={isLoading}
-              className="w-full px-4 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:bg-slate-600 text-white rounded-lg font-semibold transition-colors"
+              whileHover={{ scale: isLoading ? 1 : 1.01 }}
+              whileTap={{ scale: isLoading ? 1 : 0.98 }}
+              className="w-full h-11 bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-500/50 text-white rounded-xl font-medium text-sm shadow-lg shadow-emerald-500/20"
             >
-              {isLoading ? 'Creating Account...' : 'Create Account'}
-            </button>
+              {isLoading ? 'Creating account…' : 'Create account'}
+            </motion.button>
           </form>
 
-          {/* Divider */}
-          <div className="flex items-center gap-3 mb-6">
-            <div className="flex-1 h-px bg-slate-700"></div>
-            <span className="text-slate-500 text-sm">or</span>
-            <div className="flex-1 h-px bg-slate-700"></div>
+          <div className="flex items-center gap-3 my-6">
+            <div className="flex-1 h-px bg-white/[0.06]" />
+            <span className="text-slate-500 text-xs uppercase tracking-wider">or</span>
+            <div className="flex-1 h-px bg-white/[0.06]" />
           </div>
 
-          {/* Google Button */}
           <button
             onClick={handleGoogleSignUp}
             disabled={isLoading}
-            className="w-full px-4 py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg font-semibold text-white transition-colors flex items-center justify-center gap-2"
+            className="w-full h-11 flex items-center justify-center gap-2.5 bg-white/[0.04] hover:bg-white/[0.07] border border-white/[0.08] rounded-xl text-sm font-medium text-white"
           >
-            <span>🔍</span> Sign up with Google
+            Sign up with Google
           </button>
 
-          {/* Sign In Link */}
-          <p className="text-center text-slate-400 text-sm mt-6">
+          <p className="text-center text-sm text-slate-500 mt-6">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-emerald-400 hover:text-emerald-300">
+            <Link href="/auth/login" className="text-emerald-400 hover:text-emerald-300 font-medium">
               Sign in
             </Link>
           </p>
         </div>
-
-        {/* Terms */}
-        <p className="text-center text-xs text-slate-500 mt-8">
-          By signing up, you agree to our Terms of Service and Privacy Policy
-        </p>
-      </div>
+      </motion.div>
     </div>
+  );
+}
+
+function InputField({
+  label, name, type, placeholder, value, onChange, required,
+}: {
+  label: string; name: string; type: string; placeholder: string;
+  value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; required?: boolean;
+}) {
+  return (
+    <label className="block">
+      <span className="text-slate-300 text-sm font-medium mb-1.5 block">{label}</span>
+      <input
+        type={type} name={name} placeholder={placeholder} value={value}
+        onChange={onChange} required={required}
+        className="w-full h-10 px-3.5 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 focus:ring-2 focus:ring-emerald-500/20"
+      />
+    </label>
   );
 }
