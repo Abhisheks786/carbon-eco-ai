@@ -1,3 +1,12 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
+import { apiClient } from '@/lib/api';
+
 export default function LogIn() {
   const router = useRouter();
   const [formData, setFormData] = useState({

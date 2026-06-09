@@ -246,7 +246,7 @@ export default function CarbonTwin() {
                     />
                     <ImpactItem
                       label="Money saved annually"
-                      value="$" + (selectedScenario.savings * 0.2).toFixed(0)}
+                      value={"$" + (selectedScenario.savings * 0.2).toFixed(0)}
                       icon="💰"
                     />
                     <ImpactItem

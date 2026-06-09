@@ -111,7 +111,7 @@ a {
 }
 
 a.no-underline {
-  @apply no-underline;
+  text-decoration: none;
 }
 
 /* Card Styles */
