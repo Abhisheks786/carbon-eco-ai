@@ -17,8 +17,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      if (currentUser) {
+        (window as any).__getAuthToken = async () => {
+          return await currentUser.getIdToken();
+        };
+      } else {
+        (window as any).__getAuthToken = null;
+      }
       setLoading(false);
     });
 
